@@ -1,0 +1,17 @@
+# WebStorm config folder
+.idea
+
+# Dependency directories
+node_modules
+
+# Build project directory
+build
+
+#config
+.env
+
+#ApiDoc
+apidoc
+
+#Workbanch files
+*.bak

@@ -1,0 +1,15 @@
+{
+  "name": "appination",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "axios": "^0.18.0",
+    "cli-loader": "^1.1.1",
+    "cli-table": "^0.3.1",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.9",
+    "express": "~4.16.0",
+    "lodash": "^4.17.11",
+    "morgan": "~1.9.0"
+  }
+}
