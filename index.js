@@ -1,4 +1,4 @@
-const axios = require('axios');
+const fetch = require('node-fetch');
 const _ = require('lodash');
 const Table = require('cli-table');
 const loader = require('cli-loader')('arrow');
@@ -29,18 +29,30 @@ function readArgv(param) {
 const TOKEN = readArgv('token')
 const REPO = readArgv('repo')
 
-// SET TOKEN LIKE DEFAULT HEADER OF AXIOS
-axios.defaults.headers.common['Authorization'] = `token ${TOKEN}`
+// BUILD FETCH OPTIONS
+const fetchOptions = {}
+if (TOKEN)
+ fetchOptions.headers = { 'Authorization': `token ${TOKEN}` }
 
 // API CALLS
 async function getUsersWithComments () {
-   return await axios.get(`https://api.github.com/repos/${REPO}/comments`)
-   .then(r => r.data)
+  try {
+    return fetch(`https://api.github.com/repos/${REPO}/comments?per_page=100` , fetchOptions).then(res => res.json())
+  } catch (e) {
+    loader.stop();
+    console.log(`API ERROR: ${e}`)
+    process.exit(0)
+  }
 }
 
 async function mapUserWithCommitsStat() {
-   return await axios.get(`https://api.github.com/repos/${REPO}/stats/contributors`)
-   .then(r => r.data)
+   try {
+    return fetch(`https://api.github.com/repos/${REPO}/stats/contributors?per_page=100`, fetchOptions).then(res => res.json())
+   } catch(e) {
+    loader.stop();
+    console.log(`API ERROR: ${e}`)
+    process.exit(0)
+   }
 }
 
 // DATA AGGREGATION
@@ -75,16 +87,22 @@ function aggregateData(usersWithCommits, usersWithComments) {
 
 // COMMAND
 async function grabStatisticCommand() {
-  loader.start();
-  const usersWithComments = await getUsersWithComments()
-  const usersWithCommits = await mapUserWithCommitsStat()
-  loader.stop();
+  try {
+    loader.start();
+    let usersWithComments = await getUsersWithComments()
+    let usersWithCommits = await mapUserWithCommitsStat()
+    loader.stop();
 
-  const sortedUsersWithComments = aggregateData(usersWithComments, usersWithCommits)
-    .map(({ id, userName, commitsCount, commentsCount }) => [id, userName, commentsCount, commitsCount])
+    const sortedUsersWithComments = aggregateData(usersWithComments, usersWithCommits)
+      .map(({ id, userName, commitsCount, commentsCount }) => [id, userName, commentsCount, commitsCount])
 
-  tableIns.push(...sortedUsersWithComments)
-  console.log(tableIns.toString())
+    tableIns.push(...sortedUsersWithComments)
+    console.log(tableIns.toString())
+  } catch (e) {
+    loader.stop();
+    console.log(`Something went wrong: ${e}`)
+    process.exit(0)
+  }
 }
 
 if (!REPO) {
